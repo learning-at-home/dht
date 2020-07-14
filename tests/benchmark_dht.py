@@ -2,7 +2,6 @@ import time
 import argparse
 import random
 from warnings import warn
-import dht
 from tqdm import trange
 import dht
 
