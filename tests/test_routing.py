@@ -3,9 +3,9 @@ import heapq
 import operator
 from itertools import chain, zip_longest
 
-from hivemind import LOCALHOST
-from hivemind.dht.routing import RoutingTable, DHTID
-from hivemind.utils.serializer import PickleSerializer
+from dht import LOCALHOST
+from dht.dht import RoutingTable, DHTID
+from dht.utils.serializer import PickleSerializer
 
 
 def test_ids_basic():

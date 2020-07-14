@@ -16,21 +16,25 @@ import asyncio
 import ctypes
 import multiprocessing as mp
 import warnings
-from collections import deque
+from collections import deque, namedtuple
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Sequence
-
 import uvloop
 
-from hivemind.client import RemoteExpert
-from hivemind.dht.node import DHTNode, DHTID, DHTExpiration
-from hivemind.dht.routing import get_dht_time
-from hivemind.utils import MPFuture, Endpoint
+
+from dht.node import DHTNode, DHTExpiration
+from dht.routing import get_dht_time
+from dht.utils import MPFuture, Endpoint
+
+__version__ = '0.7.1'
+
+
+RemoteExpert = namedtuple('RemoteExpert', ['uid', 'endpoint'])
 
 
 class DHT(mp.Process):
     """
-    High-level interface to hivemind.dht that is designed to allow RemoteMixtureOfExperts to select best experts.
+    High-level interface to dht.dht that is designed to allow RemoteMixtureOfExperts to select best experts.
 
     :param initial_peers: one or multiple endpoints pointing to active DHT peers. Similar format to listen_on.
     :param listen_on: an interface for incoming connections, e.g. "127.0.0.1:*", "0.0.0.0:1234" or "ipv6:[::]:*"
@@ -48,7 +52,7 @@ class DHT(mp.Process):
         * optional prefix that determines expert role, experiment name, etc.
         * one or more integers that determine that expert's position in an N-dimensional grid
 
-    A hivemind.Server can ``DHT.declare_experts(expert_uids: List[str])`` to make its experts visible to everyone.
+    A dht.Server can ``DHT.declare_experts(expert_uids: List[str])`` to make its experts visible to everyone.
     When declaring experts, DHT will store each expert's uid and all its prefixes until :expiration: (specified at init)
     For instance, declaring "ffn_expert.98.76.54.32.10" will store the following keys in a DHT:
     ``"ffn_expert", "ffn_expert.98", "ffn_expert.98.76", ..., "ffn_expert.98.76.54.32.10"``

@@ -8,7 +8,7 @@ import asyncio
 from functools import lru_cache
 from typing import Optional
 
-from hivemind.utils.threading import run_in_background
+from dht.utils.threading import run_in_background
 
 
 class MPFuture(base.Future):

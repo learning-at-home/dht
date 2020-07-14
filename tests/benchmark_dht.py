@@ -1,15 +1,13 @@
 import time
 import argparse
 import random
-from typing import Tuple
 from warnings import warn
-import hivemind
+import dht
 from tqdm import trange
+import dht
 
-from test_utils import increase_file_limit
 
-
-def random_endpoint() -> hivemind.Endpoint:
+def random_endpoint() -> dht.Endpoint:
     return f"{random.randint(0, 256)}.{random.randint(0, 256)}.{random.randint(0, 256)}." \
            f"{random.randint(0, 256)}:{random.randint(0, 65535)}"
 
@@ -22,8 +20,8 @@ def benchmark_dht(num_peers: int, initial_peers: int, num_experts: int, expert_b
     peers = []
     for _ in trange(num_peers):
         neighbors = [f'0.0.0.0:{node.port}' for node in random.sample(peers, min(initial_peers, len(peers)))]
-        peer = hivemind.DHT(initial_peers=neighbors, start=True, wait_timeout=wait_timeout,
-                            expiration=expiration, listen_on=f'0.0.0.0:*')
+        peer = dht.DHT(initial_peers=neighbors, start=True, wait_timeout=wait_timeout,
+                       expiration=expiration, listen_on=f'0.0.0.0:*')
         peers.append(peer)
 
     store_peer, get_peer = peers[-2:]
@@ -92,6 +90,6 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     if args.pop('increase_file_limit', False):
-        increase_file_limit()
+        dht.utils.increase_file_limit()
 
     benchmark_dht(**args)

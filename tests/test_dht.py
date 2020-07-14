@@ -1,6 +1,7 @@
 import time
 import asyncio
 import multiprocessing as mp
+import multiprocessing.synchronize
 import random
 import heapq
 import uuid
@@ -8,12 +9,13 @@ from itertools import chain
 from typing import Optional
 import numpy as np
 
-import hivemind
+import dht
 from typing import List, Dict
 
-from hivemind import get_dht_time
-from hivemind.dht.node import DHTID, Endpoint, DHTNode, LOCALHOST, DHTProtocol
-from hivemind.dht.protocol import LocalStorage
+from dht import DHT, DHTNode, get_dht_time
+from dht.protocol import DHTProtocol, LocalStorage
+from dht.routing import DHTID
+from dht.utils import LOCALHOST, Endpoint, find_open_port, MSGPackSerializer
 
 
 def run_protocol_listener(port: int, dhtid: DHTID, started: mp.synchronize.Event, ping: Optional[Endpoint] = None):
@@ -33,12 +35,12 @@ def run_protocol_listener(port: int, dhtid: DHTID, started: mp.synchronize.Event
 
 def test_dht_protocol():
     # create the first peer
-    peer1_port, peer1_id, peer1_started = hivemind.find_open_port(), DHTID.generate(), mp.Event()
+    peer1_port, peer1_id, peer1_started = find_open_port(), DHTID.generate(), mp.Event()
     peer1_proc = mp.Process(target=run_protocol_listener, args=(peer1_port, peer1_id, peer1_started), daemon=True)
     peer1_proc.start(), peer1_started.wait()
 
     # create another peer that connects to the first peer
-    peer2_port, peer2_id, peer2_started = hivemind.find_open_port(), DHTID.generate(), mp.Event()
+    peer2_port, peer2_id, peer2_started = find_open_port(), DHTID.generate(), mp.Event()
     peer2_proc = mp.Process(target=run_protocol_listener, args=(peer2_port, peer2_id, peer2_started),
                             kwargs={'ping': f'{LOCALHOST}:{peer1_port}'}, daemon=True)
     peer2_proc.start(), peer2_started.wait()
@@ -59,14 +61,14 @@ def test_dht_protocol():
 
             key, value, expiration = DHTID.generate(), [random.random(), {'ololo': 'pyshpysh'}], get_dht_time() + 1e3
             store_ok = loop.run_until_complete(protocol.call_store(
-                f'{LOCALHOST}:{peer1_port}', [key], [hivemind.MSGPackSerializer.dumps(value)], expiration)
+                f'{LOCALHOST}:{peer1_port}', [key], [MSGPackSerializer.dumps(value)], expiration)
             )
             assert all(store_ok), "DHT rejected a trivial store"
 
             # peer 1 must know about peer 2
             recv_value_bytes, recv_expiration, nodes_found = loop.run_until_complete(
                 protocol.call_find(f'{LOCALHOST}:{peer1_port}', [key]))[key]
-            recv_value = hivemind.MSGPackSerializer.loads(recv_value_bytes)
+            recv_value = MSGPackSerializer.loads(recv_value_bytes)
             (recv_id, recv_endpoint) = next(iter(nodes_found.items()))
             assert recv_id == peer2_id and ':'.join(recv_endpoint.split(':')[-2:]) == f"{LOCALHOST}:{peer2_port}", \
                 f"expected id={peer2_id}, peer={LOCALHOST}:{peer2_port} but got {recv_id}, {recv_endpoint}"
@@ -85,7 +87,7 @@ def test_dht_protocol():
                 f"expected id={peer1_id}, peer={LOCALHOST}:{peer1_port} but got {recv_id}, {recv_endpoint}"
 
             # cause a non-response by querying a nonexistent peer
-            dummy_port = hivemind.find_open_port()
+            dummy_port = find_open_port()
             assert loop.run_until_complete(protocol.call_find(f"{LOCALHOST}:{dummy_port}", [key])) is None
 
             if listen:
@@ -103,7 +105,7 @@ def test_dht_protocol():
 
 def test_empty_table():
     """ Test RPC methods with empty routing table """
-    peer_port, peer_id, peer_started = hivemind.find_open_port(), DHTID.generate(), mp.Event()
+    peer_port, peer_id, peer_started = find_open_port(), DHTID.generate(), mp.Event()
     peer_proc = mp.Process(target=run_protocol_listener, args=(peer_port, peer_id, peer_started), daemon=True)
     peer_proc.start(), peer_started.wait()
     test_success = mp.Event()
@@ -122,18 +124,18 @@ def test_empty_table():
             protocol.call_find(f'{LOCALHOST}:{peer_port}', [key]))[key]
         assert recv_value_bytes is None and recv_expiration is None and len(nodes_found) == 0
         assert all(loop.run_until_complete(protocol.call_store(
-            f'{LOCALHOST}:{peer_port}', [key], [hivemind.MSGPackSerializer.dumps(value)], expiration)
+            f'{LOCALHOST}:{peer_port}', [key], [MSGPackSerializer.dumps(value)], expiration)
         )), "peer rejected store"
 
         recv_value_bytes, recv_expiration, nodes_found = loop.run_until_complete(
             protocol.call_find(f'{LOCALHOST}:{peer_port}', [key]))[key]
-        recv_value = hivemind.MSGPackSerializer.loads(recv_value_bytes)
+        recv_value = MSGPackSerializer.loads(recv_value_bytes)
         assert len(nodes_found) == 0
         assert recv_value == value and recv_expiration == expiration, "call_find_value expected " \
             f"{value} (expires by {expiration}) but got {recv_value} (expires by {recv_expiration})"
 
         assert loop.run_until_complete(protocol.call_ping(f'{LOCALHOST}:{peer_port}')) == peer_id
-        assert loop.run_until_complete(protocol.call_ping(f'{LOCALHOST}:{hivemind.find_open_port()}')) is None
+        assert loop.run_until_complete(protocol.call_ping(f'{LOCALHOST}:{find_open_port()}')) is None
         test_success.set()
 
     tester = mp.Process(target=_tester, daemon=True)
@@ -266,13 +268,13 @@ def test_dht_node():
 
 
 def test_hivemind_dht():
-    peers = [hivemind.DHT(start=True)]
+    peers = [DHT(start=True)]
     for i in range(10):
         neighbors_i = [f'{LOCALHOST}:{node.port}' for node in random.sample(peers, min(3, len(peers)))]
-        peers.append(hivemind.DHT(initial_peers=neighbors_i, start=True))
+        peers.append(DHT(initial_peers=neighbors_i, start=True))
 
-    you: hivemind.dht.DHT = random.choice(peers)
-    theguyshetoldyounottoworryabout: hivemind.dht.DHT = random.choice(peers)
+    you: DHT = random.choice(peers)
+    theguyshetoldyounottoworryabout: DHT = random.choice(peers)
 
     expert_uids = [str(uuid.uuid4()) for _ in range(110)]
     batch_size = 10
@@ -286,7 +288,7 @@ def test_hivemind_dht():
     that_guys_expert, that_guys_port = str(uuid.uuid4()), random.randint(1000, 9999)
     theguyshetoldyounottoworryabout.declare_experts([that_guys_expert], f'that_host:{that_guys_port}')
     you_notfound, you_found = you.get_experts(['foobar', that_guys_expert])
-    assert isinstance(you_found, hivemind.RemoteExpert)
+    assert isinstance(you_found, dht.RemoteExpert)
     assert you_found.endpoint == f'that_host:{that_guys_port}'
 
     # test first_k_active
@@ -304,10 +306,10 @@ def test_hivemind_dht():
 
 
 def test_dht_single_node():
-    node = hivemind.DHT(start=True)
-    assert all(node.declare_experts(['e1', 'e2', 'e3'], f"{hivemind.LOCALHOST}:{1337}"))
+    node = DHT(start=True)
+    assert all(node.declare_experts(['e1', 'e2', 'e3'], f"{LOCALHOST}:{1337}"))
     for expert in node.get_experts(['e3', 'e2']):
-        assert expert.endpoint == f"{hivemind.LOCALHOST}:{1337}"
+        assert expert.endpoint == f"{LOCALHOST}:{1337}"
     assert node.first_k_active(['e0', 'e1', 'e3', 'e5', 'e2'], k=2) == ['e1', 'e3']
 
 

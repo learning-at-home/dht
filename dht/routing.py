@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from itertools import chain
 from typing import Tuple, Optional, List, Dict, Set, Union, Any, Sequence
 
-from hivemind.utils import Endpoint, PickleSerializer
+from dht.utils import Endpoint, PickleSerializer
 
 DHTKey, DHTValue, DHTExpiration, BinaryDHTID, BinaryDHTValue, = Any, Any, float, bytes, bytes  # flavour types
 get_dht_time = time.time  # time used by all dht functionality. You can replace this with any infrastructure-wide time

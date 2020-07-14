@@ -23,8 +23,8 @@ from recommonmark.parser import CommonMarkParser
 
 # -- Project information -----------------------------------------------------
 sys.path.insert(0, '..')
-src_path = '../hivemind'
-project = 'hivemind'
+src_path = '../dht'
+project = 'dht'
 copyright = '2020, Learning@home & contributors'
 author = 'Learning@home & contributors'
 
@@ -119,7 +119,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'hiveminddoc'
+htmlhelp_basename = 'dhtdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -146,8 +146,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'hivemind.tex', 'hivemind Documentation',
-     'Learning@home \\& contributors', 'manual'),
+    (master_doc, 'dht.tex', 'dht Documentation',
+     'Learning@home & BitTensor devs', 'manual'),
 ]
 
 
@@ -156,7 +156,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'hivemind', 'hivemind Documentation',
+    (master_doc, 'dht', 'dht Documentation',
      [author], 1)
 ]
 
@@ -167,8 +167,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'hivemind', 'hivemind Documentation',
-     author, 'hivemind', 'One line description of project.',
+    (master_doc, 'dht', 'dht Documentation',
+     author, 'dht', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -244,4 +244,4 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info['module'].replace('.', '/') + '.py'
 
-    return "https://github.com/learning-at-home/hivemind/blob/%s/%s" % (branch, filename)
+    return "https://github.com/learning-at-home/dht/blob/%s/%s" % (branch, filename)

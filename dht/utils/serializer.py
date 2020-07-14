@@ -1,9 +1,7 @@
 """ A unified interface for several common serialization methods """
 import pickle
-from io import BytesIO
-
-import torch
 import umsgpack
+
 
 class SerializerBase:
     @staticmethod
@@ -23,18 +21,6 @@ class PickleSerializer(SerializerBase):
     @staticmethod
     def loads(buf: bytes) -> object:
         return pickle.loads(buf)
-
-
-class PytorchSerializer(SerializerBase):
-    @staticmethod
-    def dumps(obj: object) -> bytes:
-        s = BytesIO()
-        torch.save(obj, s, pickle_protocol=pickle.HIGHEST_PROTOCOL)
-        return s.getvalue()
-
-    @staticmethod
-    def loads(buf: bytes) -> object:
-        return torch.load(BytesIO(buf))
 
 
 class MSGPackSerializer(SerializerBase):

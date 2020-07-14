@@ -10,8 +10,8 @@ from warnings import warn
 import grpc
 import grpc.experimental.aio
 
-from hivemind.dht.routing import RoutingTable, DHTID, BinaryDHTValue, DHTExpiration, get_dht_time
-from hivemind.utils import Endpoint, compile_grpc, get_logger, replace_port, get_port
+from dht.routing import RoutingTable, DHTID, BinaryDHTValue, DHTExpiration, get_dht_time
+from dht.utils import Endpoint, compile_grpc, get_logger, replace_port
 
 logger = get_logger(__name__)
 

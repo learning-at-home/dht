@@ -1,13 +1,13 @@
 import asyncio
 
 import pytest
-import hivemind
+import dht
 
 from concurrent.futures import CancelledError
 
 
 def test_mpfuture_result():
-    f1, f2 = hivemind.MPFuture.make_pair()
+    f1, f2 = dht.MPFuture.make_pair()
     f1.set_result(321)
     assert f2.result() == 321
     assert f1.result() == 321
@@ -20,7 +20,7 @@ def test_mpfuture_result():
         assert future.cancel() is False
         assert future.done() and not future.running() and not future.cancelled()
 
-    f1, f2 = hivemind.MPFuture.make_pair()
+    f1, f2 = dht.MPFuture.make_pair()
     with pytest.raises(TimeoutError):
         f1.result(timeout=1e-3)
 
@@ -29,7 +29,7 @@ def test_mpfuture_result():
 
 
 def test_mpfuture_exception():
-    f1, f2 = hivemind.MPFuture.make_pair()
+    f1, f2 = dht.MPFuture.make_pair()
     with pytest.raises(TimeoutError):
         f1.exception(timeout=1e-3)
 
@@ -44,7 +44,7 @@ def test_mpfuture_exception():
 
 
 def test_mpfuture_cancel():
-    f1, f2 = hivemind.MPFuture.make_pair()
+    f1, f2 = dht.MPFuture.make_pair()
     assert not f2.cancelled()
     f1.cancel()
     for future in [f1, f2]:
@@ -60,7 +60,7 @@ def test_mpfuture_cancel():
 
 
 def test_mpfuture_status():
-    f1, f2 = hivemind.MPFuture.make_pair()
+    f1, f2 = dht.MPFuture.make_pair()
     assert f1.set_running_or_notify_cancel() is True
     for future in [f1, f2]:
         assert future.running() and not future.done() and not future.cancelled()
@@ -71,7 +71,7 @@ def test_mpfuture_status():
         assert not future.running() and future.done() and future.cancelled()
         assert future.set_running_or_notify_cancel() is False
 
-    f1, f2 = hivemind.MPFuture.make_pair()
+    f1, f2 = dht.MPFuture.make_pair()
     f1.cancel()
     for future in [f1, f2]:
         assert future.set_running_or_notify_cancel() is False
@@ -80,7 +80,7 @@ def test_mpfuture_status():
 def test_await_mpfuture():
     async def _run():
         # await result
-        f1, f2 = hivemind.MPFuture.make_pair()
+        f1, f2 = dht.MPFuture.make_pair()
         async def wait_and_assign():
             assert f2.set_running_or_notify_cancel() is True
             await asyncio.sleep(0.1)
@@ -92,7 +92,7 @@ def test_await_mpfuture():
             assert res == (123, 'ololo')
 
         # await cancel
-        f1, f2 = hivemind.MPFuture.make_pair()
+        f1, f2 = dht.MPFuture.make_pair()
         async def wait_and_cancel():
             await asyncio.sleep(0.1)
             f1.cancel()
@@ -103,7 +103,7 @@ def test_await_mpfuture():
                 await future
 
         # await exception
-        f1, f2 = hivemind.MPFuture.make_pair()
+        f1, f2 = dht.MPFuture.make_pair()
         async def wait_and_raise():
             await asyncio.sleep(0.1)
             f1.set_exception(SystemError())

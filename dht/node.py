@@ -6,10 +6,10 @@ from collections import namedtuple
 from typing import Optional, Tuple, List, Dict, Collection, Union, Set
 from warnings import warn
 
-from hivemind.dht.protocol import DHTProtocol
-from hivemind.dht.routing import DHTID, DHTExpiration, DHTKey, get_dht_time, DHTValue
-from hivemind.dht.traverse import traverse_dht
-from hivemind.utils import Endpoint, LOCALHOST, MSGPackSerializer
+from dht.protocol import DHTProtocol
+from dht.routing import DHTID, DHTExpiration, DHTKey, get_dht_time, DHTValue
+from dht.traverse import traverse_dht
+from dht.utils import Endpoint, LOCALHOST, MSGPackSerializer
 
 
 class DHTNode:
@@ -25,7 +25,7 @@ class DHTNode:
     Every (key, value) pair in this DHT has an expiration time - float computed as get_dht_time(), UnixTime by default
     DHT nodes always prefer values with higher expiration time and may delete any value past its expiration.
 
-    Compared to Kademlia RPC protocol, hivemind DHT has 3 RPCs:
+    Compared to Kademlia RPC protocol, dht DHT has 3 RPCs:
 
     * ping - request peer's identifier and update routing table (same as Kademlia PING RPC)
     * store - send several (key, value, expiration_time) pairs to the same peer (like Kademlia STORE, but in bulk)
