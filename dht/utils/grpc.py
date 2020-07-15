@@ -9,8 +9,6 @@ from argparse import Namespace
 from typing import Tuple
 
 import grpc_tools.protoc
-import numpy as np
-import torch
 
 
 @functools.lru_cache(maxsize=None)

@@ -3,8 +3,9 @@ import heapq
 import operator
 from itertools import chain, zip_longest
 
-from dht import LOCALHOST
-from dht.dht import RoutingTable, DHTID
+
+from dht.utils import LOCALHOST
+from dht.routing import RoutingTable, DHTID
 from dht.utils.serializer import PickleSerializer
 
 
