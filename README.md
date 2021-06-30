@@ -1,3 +1,7 @@
+### Deprecation Notice
+
+This repository is deprecated and no longer supported. The up-to-date DHT implementation became the part of the [hivemind](https://github.com/learning-at-home/hivemind/tree/master/hivemind/dht) module.
+
 ## DHT
 
 [![Build status](https://circleci.com/gh/learning-at-home/dht.svg?style=shield)](https://circleci.com/gh/dht/hivemind)
